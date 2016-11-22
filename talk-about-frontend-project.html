@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="zh-cmn-Hans">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>浅谈前端工程化及项目实践</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/league.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section data-background-transition="slide">
+					<h2>浅谈前端工程化及项目实践</h2>
+					
+					<!-- <p>姬永佳</p>
+					<p>车巴达前端工程师</p> -->
+					<p>擅长：h5、javascript、nodejs</p>
+    <!--                 <ul>
+                        <li>github:<a href="https://github.com/skdream">https://github.com/skdream</a></li>
+                    </ul> -->
+				</section>
+				<section>
+					<section>
+						<h2>主讲内容</h2>
+						<ul>
+							<li class="fragment fade-up">传统前端开发迭代过程中会遇到的问题</li>
+							<li class="fragment fade-up">工程化要解决的问题</li>
+					    <li class="fragment fade-up">内部项目实践</li>
+						</ul>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>代码难以维护</h2>
+						<ul>
+							<li class="fragment fade-up">缺少统一的编码规范，不同项目、不同人的代码风格不一。</li>
+							<li class="fragment fade-up">变量命名随意，var a,one,kkk;做不到变量名自解释，注释稀少，不通读代码难以理解变量名和函数功能。</li>
+							<li class="fragment fade-up">每个项目各自一套自己的css,甚至reset样式都不统一，UI有新需求时每个开发人员维护自己的一套样式，遇到的bug每个人重复解决一次，新老css难以拆分，css体积增大。</li>
+							<li class="fragment fade-up">页面相同功能的部分，每个项目对应的开发人员各自实现相同的功能，缺少公共业务组件。</li>
+						</ul>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>项目难以维护</h2>
+						<ul>
+							<li class="fragment fade-up">有用npm管理第三方依赖包，npm install后项目运行不了，缺少依赖包。胡乱使用第三方库、组件，文件会导致页面加载大量无用代码</li>
+							<li class="fragment fade-up">页面关系错综复杂，需求迭代易出bug。</li>
+							<li class="fragment fade-up">静态资源不断增加。</li>
+						</ul>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>部署难以维护</h2>
+						<ul>
+							<li class="fragment fade-up">没有版本号、内容指纹的概念，无法长期缓存及精确控制缓存内容。</li>
+							<li class="fragment fade-up">覆盖式发布，升级不够平滑。</li>
+						</ul>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>可能发生一些工程问题</h2>
+						<ul>
+							<li class="fragment fade-up">代码编写、调试困难</li>
+							<li class="fragment fade-up">业务代码不好维护</li>
+							<li class="fragment fade-up">网站性能不好</li>
+							<li class="fragment fade-up">发现bug不好修复。</li>
+						</ul>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>工程化要解决的问题?</h2>
+						<ul>
+							<li class="fragment fade-up">合理的开发流程及开发规范，包括代码规范、模块化组件化规范(分治)等（提高生产力）</li>
+							<li class="fragment fade-up">一套自动化代码构建方案</li>
+							<li class="fragment fade-up">一套自动化 发布／部署 方案</li>
+						</ul>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h3>以工程化的理念重构系统</h4>
+						<ul>
+							<li class="fragment fade-up">开发</li>
+							<li class="fragment fade-up">构建</li>
+							<li class="fragment fade-up">部署</li>
+						</ul>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h2>开发</h2>
+						<ul>
+							<li class="fragment fade-up">1.组件化开发。整个webapp由各个组件构成，一个组件的Js、CSS和HTML维护在一起，尽量松耦合。（react+es6+less编写组件）</li>
+							<li class="fragment fade-up">模块化开发。Js模块化，CSS模块化，HTML模块化，所有资源都是模块，并采取就近引入原则，哪里用哪里引，同时要做到防止资源重复引入。</li>
+							<li class="fragment fade-up">文件实时监听、浏览器自动刷新。</li>
+							<li class="fragment fade-up">依赖包管理，版本控制。</li>
+							<li class="fragment fade-up">规范编码。推荐JS：Airbnb eslint规范 css: BEM命名规范</li>
+						</ul>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>构建</h2>
+						<ul>
+							<li class="fragment fade-up">可以编译中间语言。比如支持Stylus、Less、Typescript等的编译。</li>
+							<li class="fragment fade-up">支持Js、CSS的压缩和混肴。</li>
+							<li class="fragment fade-up">允许图片压缩后以base64编码形式嵌入到CSS、Js或HTML中。</li>
+							<li class="fragment fade-up">支持代码按需加载。将代码根据页面需求进行分割与合并，优化Http请求数。</li>
+						</ul>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>部署</h2>
+						<ul>
+							<li class="fragment fade-up">根据代码内容生成版本号，实现缓存控制，提示访问性能。</li>
+							<li class="fragment fade-up">支持第三方类库的Js、CSS与自己所写的代码分离。</li>
+			
+						</ul>
+					</section>
+				</section>
+		
+				<section>
+				<h2>什么是组件化开发？</h2>
+
+				</section>
+
+				<section>
+					<p ><img src="./img/6.png" alt="组件化开发示意图"></p>
+					<ul>
+						<li class="fragment fade-up">页面上的每个独立的 可视/可交互区域视为一个组件;</li>
+						<li class="fragment fade-up">每个组件对应一个工程目录，组件所需的各种资源都在这个目录下就近维护;</li>
+						<li class="fragment fade-up">每个组件相对独立，页面作为组件的容器，组件自由组合形成功能完整的界面;</li>
+						<li class="fragment fade-up">当不需要某个组件，或者想要替换组件时，可以整个目录删除/替换。</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>内部项目实践</h2>
+				</section>
+
+				<section>
+					<h2>app组件系统：</h2>
+					<p>es6+react.js+less作为主要技术栈</p>
+					<section>
+						<ul>
+						    <li class="fragment fade-up">cbdUI基础组件库：基础UI组件。</li>
+						    <li class="fragment fade-up">Cbd业务组件库：包含不同项目相同功能的业务组件</li>
+						</ul>
+					</section>
+				</section>
+
+				<section>
+					<h3>基础UI组件目录结构</h3>
+					<p><img  data-src="./img/4.png" alt=""></p>
+				</section>
+				<section>
+					<h3>基于storybook的组件demo</h3>
+					<p><img  data-src="./img/3.png" alt=""></p>
+				</section>
+				
+
+				<section>
+					<h3>cbd命令行工具</h3>
+					<section>
+						<ul>
+							<li class="fragment fade-up">主要用于专题的cbd命令行工具</li>
+						    <li class="fragment fade-up">类型项目的脚手架初始化</li>
+						    <li class="fragment fade-up">自动化工具（编译、压缩、hash指纹、热加载）</li>
+						    <li class="fragment fade-up">代码发布</li>
+						</ul>
+					</section>
+				</section>
+
+				<section>
+					<h3>服务端打包发布系统</h4>
+					<p>前端：reactjs   +  后端：nodejs+mongodb</p>
+					<section>
+						<ul>
+						<li class="fragment fade-up">支持自定义添加hook脚本</li>
+					    <li class="fragment fade-up">拉取代码仓库对应版本，编译、发布至指定目录</li>
+					    <li class="fragment fade-up">发布日志</li>
+						</ul>
+					</section>
+				</section>
+
+
+				<section>
+					<h3>列表</h3>
+					<p><img  data-src="./img/5.png" alt=""></p>
+				</section>
+				<section>
+					<h3>添加脚本</h3>
+					<p><img  data-src="./img/1.png" alt=""></p>
+				</section>
+				<section>
+					<h3>日志</h3>
+					<p><img  data-src="./img/2.png" alt=""></p>
+				</section>
+				<section>
+					<h2>谢谢!</h2>
+					<!-- <h4><a href="http://weibo.com/oneover" target="_blank">@awcool</a></h4> -->
+					
+				</section>
+
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+				
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+                transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>

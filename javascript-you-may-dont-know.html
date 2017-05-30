@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="zh-cmn-Hans">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<title>深入理解javascript</title>
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/sky.css">
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section data-background-transition="slide">
+					<h2>深入理解JavaScript</h2>
+					<p>Create by 姬永佳</p>
+				</section>
+
+				<section>
+					<h2>主要内容：</h2>
+					<ul>
+						<li class="fragment fade-up">javascript内存管理</li>
+						<li class="fragment fade-up">变量、函数声明提升</li>
+						<li class="fragment fade-up">this对象、作用域和闭包</li>
+						<li class="fragment fade-up">JavaScript参数传递</li>
+						<li class="fragment fade-up">类数组对象与arguments</li>
+					</ul>
+				</section>
+			
+
+				<section>
+					<section>
+						<h2>内存生命周期</h2>
+
+						<ol>
+							<li class="fragment fade-up">分配你所需要的内存</li>
+							<li class="fragment fade-up">使用分配到的内存（读、写）</li>
+							<li class="fragment fade-up">不需要时将其释放\归还</li>
+						</ol>
+						
+					</section>
+				</section>
+
+					
+ <!-- Slides are separated by newline + three dashes + newline, vertical slides identical but two dashes -->
+<section data-markdown data-separator="^\n---\n$" data-separator-vertical="^\n--\n$">
+    <script type="text/template">
+
+## JavaScript的内存分配
+值的初始化,JavaScript在定义变量时就完成的内存分配。
+
+```javascript
+
+var n = 123; // 给数值变量分配内存
+var s = "azerty"; // 给字符串分配内存
+
+var o = {
+  a: 1,
+  b: null
+}; // 给对象及其包含的值分配内存
+
+// 给数组及其包含的值分配内存（就像对象一样）
+var a = [1, null, "abra"]; 
+
+function f(a){
+  return a + 2;
+} // 给函数（可调用的对象）分配内存
+
+// 函数表达式也能分配一个对象
+someElement.addEventListener('click', function(){
+  someElement.style.backgroundColor = 'blue';
+}, false);
+
+
+```
+
+--
+
+
+## 原始值和引用值
+
+
+在ECMAScript中，变量可以存放两种类型的值，即原始值和引用值。
+
+原始值：Undefined、Null、Number、String、Boolean、Symbol
+
+引用值：Object、Function、Array...
+
+--
+
+
+
+## 栈和堆
+
+与原始值和引用值对应的两种结构即的内存栈和堆
+
+原始值是存储在栈中的简单数据段，他们的值直接存储在变量访问的位置。
+
+堆是存放数据的基于散列算法的数据结构，用以表示一个内存中大的未被组织的区域，在JavaScript中，引用值被分配在一个堆中，
+
+引用值是存储在堆中的对象，也就是，存储在变量处的值（及指向对象的变量，存储在栈中）是一个指针，指向存储在堆中的实际对象。
+
+--
+
+``` javascript
+var obj = new Object();
+
+```
+obj存储在栈中它指向于new Object()这个对象，而new Object()是存放在堆中的。
+
+--
+
+### 为什么引用值要放在堆中，而原始值要放在栈中
+
+```javascript
+function Person(id,name,age){
+    this.id = id;
+    this.name = name;
+    this.age = age;
+}
+
+var num = 10;
+var bol = true;
+var str = "abc";
+var obj = new Object();
+var arr = ['a','b','c'];
+var person = new Person(100,"jxl",25);
+
+```
+
+--
+
+内存分析图
+
+<img src="./images/stack.png" alt="">
+
+
+由上图可知，我们无法直接操纵堆中的数据，也就是说我们无法直接操纵对象，但我们可以通过栈中对对象的引用来操作对象
+
+
+--
+
+
+
+堆比栈大，栈比堆的运算速度快,对象是一个复杂的结构，并且可以自由扩展，将他们放在堆中是为了不影响栈的效率。而是通过引用的方式查找到堆中的实际对象再进行操作。
+
+相对于简单数据类型而言，简单数据类型就比较稳定，并且它只占据很小的内存。
+
+不将简单数据类型放在堆是因为通过引用到堆中查找实际对象是要花费时间的，而这个综合成本远大于直接从栈中取得实际值的成本。所以简单数据类型的值直接存放在栈中。
+
+
+--
+
+### 值的使用
+
+使用值的过程实际上是对分配内存进行读取与写入的操作。读取与写入可能是写入一个变量或者一个对象的属性值，甚至传递函数的参数。
+
+--
+
+### 当内存不再需要使用时释放
+
+
+
+大多数内存管理的问题都在这个阶段。在这里最艰难的任务是找到“所分配的内存确实已经不再需要了”。它往往要求开发人员来确定在程序中哪一块内存不再需要并且释放它。
+
+高级语言解释器嵌入了“垃圾回收器”，它的主要工作是跟踪内存的分配和使用，以便当分配的内存不再使用时，自动释放它。这只能是一个近似的过程，因为要知道是否仍然需要某块内存是无法判定的,因此，垃圾回收实现只能有限制的解决一般问题
+
+
+</script>
+</section>
+
+
+<section data-markdown data-separator="^\n---\n$" data-separator-vertical="^\n--\n$">
+<script type="text/template">
+## 声明提升
+
+大部分编程语言都是先声明变量再使用，但在JS中，有些不一样：
+
+--
+
+考虑以下代码:
+
+```
+a = 2;
+var a;
+console.log(a);
+
+```
+
+你认为```console.log(..)```声明会输出什么呢？
+
+--
+
+考虑另外一段代码：
+
+```
+console.log(a);
+var a = 2;
+```
+
+<ul>
+	
+	<li class="fragment fade-up">
+		a:输出2？
+	</li>
+	<li class="fragment fade-up">
+		b:由于变量a在使用前没有进行声明，因此会抛出ReferenceError异常。
+	</li>
+	<li class="fragment fade-up">
+			结果：undefined；
+	</li>
+</ul>
+
+--
+
+why? what happend?
+
+
+编译器工作原理：
+
+引擎会在解释JavaScript代码之前首先对其进行编译。
+
+编译阶段中的一部分工作就是找到所有声明，并用合适的作用域将他们关联起来。
+
+包括变量和函数在内的所有声明都会在任何代码执行前首先被处理。
+
+所有的声明（变量和函数）都会被“移动”到各自作用域的最顶端，这个过程被称作提升。
+
+--
+
+
+``` javascript 
+var a = 2;
+```
+js实际上会将其看成两个声明：
+
+```
+var a
+
+a=2
+```
+
+第一个定义声明是编译阶段的任务。
+
+第二个赋值声明是执行阶段的任务。
+
+第一个代码段会被处理成：
+
+```
+var a;
+a = 2;
+console.log(a);
+```
+
+第二个代码片段处理流程：
+```
+var a;
+console.log(a);
+a = 2;
+
+```
+
+--
+
+
+````
+foo();
+function foo(){
+  console.log(a); //undefined
+  var a = 2;
+}
+```
+注意点：
+一、每个作用域都会进行提升操作。
+```
+function foo(){
+  var a;
+  console.log(a) // undefined
+  a = 2;
+}
+
+foo();
+```
+
+--
+
+
+二、函数声明会被提升，函数表达式不会被提升。
+```
+foo(); // 不是ReferenceError:foo  is not defined而是TypeError: foo is not a function
+var foo = function bar(){
+  // ....
+};
+```
+
+--
+
+
+ 三、即使是具名的函数表达式，名称标识符在赋值之前也无法在所在作用域中使用。
+
+```
+foo() ;//  TypeError
+bar();// ReferenceError
+
+var foo = function bar(){
+    // ...
+}
+```
+经过编译后会被解析为：
+
+```
+var foo;
+foo();
+bar();
+foo = function(){
+  var bar = ... self...
+}
+```
+
+--
+
+
+四、函数声明和变量声明都会被提升，函数会优先提升，然后才是变量，如果如果变量名称跟已经声明的形式参数或函数相同，则变量声明不会干扰已经存在的这类属性。
+
+```
+foo();//1
+var foo;
+function foo(){
+console.log(1);
+}
+foo = function(){
+ console.log(2);
+}
+```
+
+被引擎解析后理解为如下形式：
+```
+function foo(){
+console.log(1)
+}
+foo();
+foo = function(){
+console.log(2)
+}
+```
+
+--
+
+五、重复的var声明会被忽略掉，但是后面的函数声明是可以覆盖前面的。
+
+```
+foo() //3
+function foo(){
+console.log(1);
+}
+var foo = function(){
+  console.log(2);
+}
+
+function foo(){
+console.log(3);
+}
+```
+在同一个作用域内进行重复定义是很糟糕的事情，会导致各种奇怪的问题。
+
+--
+
+六、不要在条件语句内声明函数。会导致异常,有兼容性问题。
+
+```
+foo(); // TypeError: foo is not a function
+
+var a = true;
+if (a) {
+   function foo() { console.log( "a" ); }
+}
+else {
+   function foo() { console.log( "b" ); }
+}
+```
+
+
+</script>
+</section>
+
+                
+<section>
+    <section>
+    	<h2> this</h2>
+
+			<p>
+			this关键词是JavaScript中最令人疑惑的机制之一。this是非常特殊的关键词标识符，在每个函数的作用域中被自动创建，但它到底指向什么（对象），很多人弄不清。
+			</p>
+			<p>
+			当函数被调用，一个activation record（即 execution context）被创建。这个record包涵信息：函数在哪调用（call-stack），函数怎么调用的，参数等等。record的一个属性就是this，指向函数执行期间的this对象。</p>
+
+			<ul>
+				<li  class="fragment fade-up">this不是author-time binding，而是 runtime binding。</li>
+				<li class="fragment fade-up">this的上下文基于函数调用的情况。和函数在哪定义无关，而和函数怎么调用有关。</li>
+			</ul>
+
+	</section>
+</section>
+
+
+<section data-markdown data-separator="^\n---\n$" data-separator-vertical="^\n--\n$">
+<script type="text/template">
+
+绑定规则：
+1.默认绑定
+```
+function foo() {
+	console.log( this.a );
+}
+var a = 2;
+foo(); // 2
+```
+严格模式下
+
+```
+function foo() {
+	"use strict";
+
+	console.log( this.a );
+}
+
+var a = 2;
+
+foo(); // TypeError: `this` is `undefined`
+```
+
+--
+
+2.隐式绑定
+
+```
+function foo() {
+	console.log( this.a );
+}
+
+var a = 2;
+
+(function(){
+	"use strict";
+
+	foo(); // 2
+})();
+```
+
+--
+
+3.显示绑定
+
+```
+function foo() {
+	console.log( this.a );
+}
+
+var obj = {
+	a: 2
+};
+
+foo.call( obj ); // 2
+```
+
+ES5: Function.prototype.bind
+
+```
+function foo(something) {
+	console.log( this.a, something );
+	return this.a + something;
+}
+
+var obj = {
+	a: 2
+};
+
+var bar = foo.bind( obj );
+
+var b = bar( 3 ); // 2 3
+console.log( b ); // 5
+
+```
+
+--
+
+4.new 绑定
+
+<!-- JavaScript中的new的机制实际上和面向对象类的语言完全不同。
+
+JavaScript的“构造函数”只是一些使用new 操作符时被调用的函数。不属于某个类，也不会实例化一个类，只是被new操作符调用的普通函数而已。 -->
+
+使用new来调用函数，或者说发生构造函数调用时，会自动执行下面的操作。
+
+1 创建（或者说构造）一个全新的对象。
+
+2 这个新对象会被执行[原型]连接。
+
+3 这个新对象会绑定到函数调用的this。
+
+4 如果函数没有返回其它对象，那么new表达式中的函数调用会自动返回这个新对象。
+
+```
+function foo(a) {
+	this.a = a;
+}
+
+var bar = new foo( 2 );
+console.log( bar.a ); // 2
+
+```
+</script>
+</section>
+
+
+<section data-markdown data-separator="^\n---\n$" data-separator-vertical="^\n--\n$">
+<script type="text/template">
+
+
+## 作用域和闭包
+
+作用域
+
+域表示的就是 范围, 即 作用范围. 就是一个名字在什么地方可以被使用, 什么时候不能使用.
+
+--
+
+js 中采用词法作用域,函数的作用域基于函数创建的位置。
+
+所谓的 词法( 代码 )作用域, 就是代码在编写过程中体现出来的作用范围. 代码一旦写好, 不用执行,
+作用范围就已经确定好了. 这个就是所谓词法作用域.
+
+--
+
+
+在 js 中词法作用域规则:
+
+函数允许访问函数外的数据.
+
+整个代码结构中只有函数可以限定作用域.
+
+作用规则首先使用提升规则分析
+
+如果当前作用规则中有名字了, 就不考虑外面的名字
+
+
+--
+
+```
+
+var scope = "global scope";
+function checkscope(){
+    var scope = "local scope";
+    function f(){
+        return scope;
+    }
+    return f();
+}
+checkscope();
+
+```
+
+--
+
+```
+var scope = "global scope";
+function checkscope(){
+    var scope = "local scope";
+    function f(){
+        return scope;
+    }
+    return f;
+}
+checkscope()();
+
+```
+
+JavaScript 函数的执行用到了作用域链，这个作用域链是在函数定义的时候创建的。嵌套的函数 f() 定义在这个作用域链里，其中的变量 scope 一定是局部变量，不管何时何地执行函数 f()，这种绑定在执行 f() 时依然有效。
+
+--
+
+## 定义
+
+
+闭包：闭包就是函数能够记住并访问它的词法作用域，即使当这个函数在它的词法作用域之外执行时。
+
+--
+
+
+MDN 对闭包的定义为：
+
+>闭包是指那些能够访问自由变量的函数。
+
+那什么是自由变量呢？
+
+>自由变量是指在函数中使用的，但既不是函数参数也不是函数的局部变量的变量。
+
+由此，我们可以看出闭包共有两部分组成：
+
+>闭包 = 函数 + 函数能够访问的自由变量
+
+--
+
+ECMAScript中，闭包指的是：
+
+1. 从理论角度：所有的函数。因为它们都在创建的时候就将上层上下文的数据保存起来了。哪怕是简单的全局变量也是如此，因为函数中访问全局变量就相当于是在访问自由变量，这个时候使用最外层的作用域。
+
+2. 从实践角度：以下函数才算是闭包：
+
+	1. 即使创建它的上下文已经销毁，它仍然存在（比如，内部函数从父函数中返回）
+	2. 在代码中引用了自由变量
+
+--
+
+```
+function foo() {
+	var a = 2;
+	function bar() {
+		console.log( a );
+	}
+	return bar;
+}
+var baz = foo();
+
+baz(); // 2 -- 哇噢，看到闭包了，伙计。
+```
+
+foo()被执行之后，一般会期望foo()的整个内部作用域都将消失，引擎启动了垃圾回收器在内存不再使用时来回收它们。
+
+但是由于闭包，内部的作用域依然在使用，因此将不会消失。
+
+bar() 依然拥有对那个作用域的引用，而这个引用称为闭包。
+
+--
+
+循环+闭包
+
+```
+for (var i=1; i<=5; i++) {
+	setTimeout( function timer(){
+		console.log( i );
+	}, i*1000 );
+}
+```
+
+由于作用域的工作方式，它们 都闭包在同一个共享的全局作用域上，而它事实上只有一个 i.
+
+就计时器而言，即便在每次迭代中它是 setTimeout(.., 0)，所有这些回调函数也都仍然是严格地在循环之后运行的，因此每次都打印 6。
+
+--
+
+为每次循环创建新的被闭包的作用域。
+
+```
+for (var i=1; i<=5; i++) {
+	(function(){
+		var j = i;
+		setTimeout( function timer(){
+			console.log( j );
+		}, j*1000 );
+	})();
+}
+```
+
+--
+
+在用于 for 循环头部的 let 声明被定义了一种特殊行为。这种行为说，这个变量将不是只为循环声明一次，而是为每次迭代声明一次。
+
+```
+for (let i=1; i<=5; i++) {
+	setTimeout( function timer(){
+		console.log( i );
+	}, i*1000 );
+}
+
+```
+
+--
+
+
+常见闭包题：
+```
+var data = [];
+
+for (var i = 0; i < 3; i++) {
+  data[i] = function () {
+    console.log(i);
+  };
+}
+
+data[0]();
+data[1]();
+data[2]();
+
+```
+
+当执行到 data[0] 函数之前，此时全局上下文的 VO 为：
+
+```
+globalContext = {
+	VO: {
+		data: [...],
+		i: 3
+	}
+}
+
+```
+
+--
+
+改成闭包：
+
+```
+var data = [];
+
+for (var i = 0; i < 3; i++) {
+	data[i] = (function (i) {
+		return function(){
+			console.log(i);
+		}
+  })(i);
+}
+
+data[0]();
+data[1]();
+data[2]();
+
+```
+
+当执行到 data[0] 函数之前，此时全局上下文的 VO 为：
+
+```
+globalContext = {
+	VO: {
+		data: [...],
+		i: 3
+	}
+}
+
+```
+
+--
+
+
+当执行 data[0] 函数的时候，data[0] 函数的作用域链发生了改变：
+
+```
+data[0]Context = {
+    Scope: [AO, 匿名函数Context.AO globalContext.VO]
+}
+```
+匿名函数执行上下文的AO为：
+
+```
+匿名函数Context = {
+	AO: {
+		arguments: {
+			0: 0,
+			length: 1
+		},
+		i: 0
+	}
+}
+```
+
+data[0]Context 的 AO 并没有 i 值，所以会沿着作用域链从匿名函数 Context.AO 中查找，这时候就会找 i 为 0，找到了就不会往 globalContext.VO 中查找了，即使 globalContext.VO 也有 i 的值(值为3)，所以打印的结果就是0。
+
+
+</script>
+</section>
+	<section>
+					<section>
+						<h2>最佳实践</h2>
+						<p><img src="./images/zuijiashijian.png"></p>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>html文件</h2>
+						<p><img src="./images/html.png"></p>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>css文件</h2>
+						<p><img src="./images/css.png"></p>
+					</section>
+				</section>
+
+
+				<section>
+					<section>
+						<h2>javascript编程方式</h2>
+						<p><img src="./images/javascript.png"></p>
+					</section>
+				</section>
+
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+				
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+                transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>

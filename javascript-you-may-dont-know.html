@@ -31,8 +31,8 @@
 						<li class="fragment fade-up">javascript内存管理</li>
 						<li class="fragment fade-up">变量、函数声明提升</li>
 						<li class="fragment fade-up">this对象、作用域和闭包</li>
-						<li class="fragment fade-up">JavaScript参数传递</li>
-						<li class="fragment fade-up">类数组对象与arguments</li>
+						<!-- <li class="fragment fade-up">JavaScript参数传递</li>
+						<li class="fragment fade-up">类数组对象与arguments</li> -->
 					</ul>
 				</section>
 			
@@ -534,7 +534,7 @@ console.log( bar.a ); // 2
 
 --
 
-js 中采用词法作用域,函数的作用域基于函数创建的位置。
+js 中采用词法作用域,变量的作用域是由它在源代码中所处位置决定,函数的作用域基于函数创建的位置。
 
 所谓的 词法( 代码 )作用域, 就是代码在编写过程中体现出来的作用范围. 代码一旦写好, 不用执行,
 作用范围就已经确定好了. 这个就是所谓词法作用域.
@@ -554,6 +554,30 @@ js 中采用词法作用域,函数的作用域基于函数创建的位置。
 
 
 --
+
+### 词法作用域
+
+```
+function init() {
+  let name = "Mozilla"; 
+  // name 是一个被init创建的局部变量
+  function displayName() { 
+  // displayName() 是一个内部函数,
+      alert(name); 
+      //  一个闭包使用在父函数中声明的变量
+  } 
+  displayName();
+}
+init();
+
+```
+
+函数 init() 创建了一个局部变量 name和一个名为 displayName() 的函数。 displayName() 是一个内部函数——定义于 init() 之内且仅在该函数体内可用。displayName() 没有任何自己的局部变量，然而它可以访问到外部函数的变量，即可以使用父函数 init() 中声明的 name 变量。
+
+
+--
+
+
 
 ```
 
@@ -622,23 +646,24 @@ ECMAScript中，闭包指的是：
 --
 
 ```
-function foo() {
-	var a = 2;
-	function bar() {
-		console.log( a );
-	}
-	return bar;
-}
-var baz = foo();
 
-baz(); // 2 -- 哇噢，看到闭包了，伙计。
+function makeFunc() {
+  var name = "Mozilla";
+  function displayName() {
+    alert(name);
+  }
+  return displayName;
+}
+
+var myFunc = makeFunc(); //创建闭包
+myFunc();
 ```
 
-foo()被执行之后，一般会期望foo()的整个内部作用域都将消失，引擎启动了垃圾回收器在内存不再使用时来回收它们。
+makeFunc()被执行之后，一般会期望makeFunc()的整个内部作用域都将消失，引擎启动了垃圾回收器在内存不再使用时来回收它们。
 
 但是由于闭包，内部的作用域依然在使用，因此将不会消失。
 
-bar() 依然拥有对那个作用域的引用，而这个引用称为闭包。
+myFunc() 依然拥有对那个作用域的引用，而这个引用称为闭包。
 
 --
 
@@ -777,37 +802,146 @@ data[0]Context 的 AO 并没有 i 值，所以会沿着作用域链从匿名函�
 
 </script>
 </section>
-	<section>
-					<section>
-						<h2>最佳实践</h2>
-						<p><img src="./images/zuijiashijian.png"></p>
-					</section>
-				</section>
 
-				<section>
-					<section>
-						<h2>html文件</h2>
-						<p><img src="./images/html.png"></p>
-					</section>
-				</section>
+		<section>
+			<section>
+				<h2>实用的闭包</h2>
+				
+				<div>
+				<script async src="http://jsfiddle.net/vnkuZ/embed/"></script>
+				</div>
+				
+			</section>
 
-				<section>
-					<section>
-						<h2>css文件</h2>
-						<p><img src="./images/css.png"></p>
-					</section>
-				</section>
+			<section>
+				<h2>用闭包模拟私有方法</h2>
+			<p>
+			<pre><code class="javascript" data-trim contenteditable style="font-size: 18px;">
 
 
-				<section>
-					<section>
-						<h2>javascript编程方式</h2>
-						<p><img src="./images/javascript.png"></p>
-					</section>
-				</section>
+			var Counter = (function() {
+			  var privateCounter = 0;
+			  function changeBy(val) {
+				privateCounter += val;
+			  }
+			  return {
+				increment: function() {
+				  changeBy(1);
+				},
+				decrement: function() {
+				  changeBy(-1);
+				},
+				value: function() {
+				  return privateCounter;
+				}
+			  }   
+			})();
 
+			console.log(Counter.value()); /* logs 0 */
+			Counter.increment();
+			Counter.increment();
+			console.log(Counter.value()); /* logs 2 */
+			Counter.decrement();
+			console.log(Counter.value()); /* logs 1 */
+
+			</code></pre>
+			</p>
+			</section>
+
+			<section>
+				<h2>在循环中创建闭包：一个常见错误</h2>
+				<div>
+				<script async src="http://jsfiddle.net/v7gjv/embed/"></script>
+				</div>
+			</section>
+
+			<section>
+				<h2>解决这个问题的一种方案</h2>
+				<div>
+					<script async src="http://jsfiddle.net/v7gjv/1/embed/"></script>
+				</div>
+			</section>
+			
+			<section>
+				<h2>性能问题</h2>
+				<p>
+					如果不是因为某些特殊任务而需要闭包，在没有必要的情况下，在其它函数中创建函数是不明智的，因为闭包对脚本性能具有负面影响，包括处理速度和内存消耗。
+				</p>
+			</section>
+			
+			<section>
+			<h2>使用闭包不当的例子</h2>
+			
+			<div>
+			<pre><code>
+function MyObject(name, message) {
+  this.name = name.toString();
+  this.message = message.toString();
+  this.getName = function() {
+	return this.name;
+  };
+
+  this.getMessage = function() {
+	return this.message;
+  };
+}
+			</code></pre>
 			</div>
-		</div>
+			
+			<div>
+			<p>可以改写为</p>
+			<pre><code>
+function MyObject(name, message) {
+  this.name = name.toString();
+  this.message = message.toString();
+}
+MyObject.prototype = {
+  getName: function() {
+    return this.name;
+  },
+  getMessage: function() {
+    return this.message;
+  }
+};
+
+</code></pre>
+			</div>
+			
+			</section>
+		</section>
+
+
+		<section>
+			<section>
+				<h2>最佳实践</h2>
+				<p><img src="./images/zuijiashijian.png"></p>
+			</section>
+		</section>
+
+		<section>
+			<section>
+				<h2>html文件</h2>
+				<p><img src="./images/html.png"></p>
+			</section>
+		</section>
+
+		<section>
+			<section>
+				<h2>css文件</h2>
+				<p><img src="./images/css.png"></p>
+			</section>
+		</section>
+
+
+		<section>
+			<section>
+				<h2>javascript编程方式</h2>
+				<p><img src="./images/javascript.png"></p>
+			</section>
+		</section>
+
+	</div>
+</div>
 
 		<script src="lib/js/head.min.js"></script>
 		<script src="js/reveal.js"></script>

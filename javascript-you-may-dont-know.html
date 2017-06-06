@@ -175,6 +175,40 @@ var person = new Person(100,"jxl",25);
 高级语言解释器嵌入了“垃圾回收器”，它的主要工作是跟踪内存的分配和使用，以便当分配的内存不再使用时，自动释放它。这只能是一个近似的过程，因为要知道是否仍然需要某块内存是无法判定的,因此，垃圾回收实现只能有限制的解决一般问题
 
 
+--
+
+### 垃圾收集方式
+
+#### 标记清除法
+
+JavaScript最常用的垃圾收集方式。当变量进入环境时，这个变量标记为“进入环境”；而当变量离开环境时，则将其标记为“离开环境”。可以使用一个“进入环境”的变量列表及一个“离开环境”的变量列表来跟踪变量的变化，也可以翻转某个特殊的位来记录一个变量何时进入环境及离开环境。最后，垃圾收集器完成内存清除工作，销毁那些带标记的值并回收它们所占用的内存空间。
+
+--
+
+- 引用计数法
+
+引用计数的含义是跟踪记录每个值被引用的次数。当声明了一个变量并将一个引用类型值赋给该变量时，则该值的引用次数就是1；如果同一个值又被赋给另一个变量，则该值的引用次数加1；如果包含对该值引用的变量又取得了另外一个值，则该值的引用次数减1。当该值的引用次数变为0时，则可以回收其占用的内存空间。当垃圾回收器下一次运行时，就会释放那些引用次数为0的值所占用的内存。
+
+--
+
+IE中有一部分对象并不是原生JavaScript对象，如BOM和DOM对象就是使用C++以COM（组件对象模型）对象的形式实现的，而COM对象的垃圾收集机制采用的就是引用计数策略，因此，即使IE的JavaScript引擎是使用标记清除策略实现的，但JavaScript访问的COM对象依然是基于引用计数策略的，也即是说，只要IE中涉及COM对象，就会存在循环引用的问题。
+
+--
+
+解决：手动断开两个对象之间的相互引用。
+在使用完毕后，手动断开原生JavaScript对象与DOM元素之间的连接，消除循环引用。当垃圾回收器下一次运行时，就会会删除这些值并回收它们占用的内存。
+
+
+```
+obj.property1 = null;  
+element.property2 = null; 
+``` 
+
+--
+
+解除引用：
+一旦数据不再有用，最好通过将其设置为null来释放其引用。
+然而，解除一个值的引用不意味着自动回收该值所占用的内存，解除引用的真正作用是让值脱离执行环境，以便垃圾收集器下次运行时将其回收。
 </script>
 </section>
 
@@ -222,10 +256,8 @@ var a = 2;
 
 --
 
-why? what happend?
 
-
-编译器工作原理：
+## 编译器工作原理：
 
 引擎会在解释JavaScript代码之前首先对其进行编译。
 
@@ -404,8 +436,8 @@ else {
 			当函数被调用，一个activation record（即 execution context）被创建。这个record包涵信息：函数在哪调用（call-stack），函数怎么调用的，参数等等。record的一个属性就是this，指向函数执行期间的this对象。</p>
 
 			<ul>
-				<li  class="fragment fade-up">this不是author-time binding，而是 runtime binding。</li>
-				<li class="fragment fade-up">this的上下文基于函数调用的情况。和函数在哪定义无关，而和函数怎么调用有关。</li>
+				<li  class="fragment fade-up">this不是author-time binding，而是 runtime binding。函数只有在调用时this的值才会被确定下来</li>
+				<li class="fragment fade-up">this的上下文基于函数调用的情况。和函数在哪定义无关，而和函数怎么调用有关。this值的确定依赖于调用者是以何种方式调用函数的。</li>
 			</ul>
 
 	</section>
@@ -709,96 +741,6 @@ for (let i=1; i<=5; i++) {
 
 ```
 
---
-
-
-常见闭包题：
-```
-var data = [];
-
-for (var i = 0; i < 3; i++) {
-  data[i] = function () {
-    console.log(i);
-  };
-}
-
-data[0]();
-data[1]();
-data[2]();
-
-```
-
-当执行到 data[0] 函数之前，此时全局上下文的 VO 为：
-
-```
-globalContext = {
-	VO: {
-		data: [...],
-		i: 3
-	}
-}
-
-```
-
---
-
-改成闭包：
-
-```
-var data = [];
-
-for (var i = 0; i < 3; i++) {
-	data[i] = (function (i) {
-		return function(){
-			console.log(i);
-		}
-  })(i);
-}
-
-data[0]();
-data[1]();
-data[2]();
-
-```
-
-当执行到 data[0] 函数之前，此时全局上下文的 VO 为：
-
-```
-globalContext = {
-	VO: {
-		data: [...],
-		i: 3
-	}
-}
-
-```
-
---
-
-
-当执行 data[0] 函数的时候，data[0] 函数的作用域链发生了改变：
-
-```
-data[0]Context = {
-    Scope: [AO, 匿名函数Context.AO globalContext.VO]
-}
-```
-匿名函数执行上下文的AO为：
-
-```
-匿名函数Context = {
-	AO: {
-		arguments: {
-			0: 0,
-			length: 1
-		},
-		i: 0
-	}
-}
-```
-
-data[0]Context 的 AO 并没有 i 值，所以会沿着作用域链从匿名函数 Context.AO 中查找，这时候就会找 i 为 0，找到了就不会往 globalContext.VO 中查找了，即使 globalContext.VO 也有 i 的值(值为3)，所以打印的结果就是0。
-
 
 </script>
 </section>
@@ -851,26 +793,32 @@ data[0]Context 的 AO 并没有 i 值，所以会沿着作用域链从匿名函�
 			<section>
 				<h2>在循环中创建闭包：一个常见错误</h2>
 				<div>
-				<script async src="http://jsfiddle.net/v7gjv/embed/"></script>
+				<!-- <script async src="http://jsfiddle.net/v7gjv/embed/"></script> -->
+
+				<p data-height="265" data-theme-id="0" data-slug-hash="RgNOdz" data-default-tab="result" data-user="skdream" data-embed-version="2" data-pen-title="RgNOdz" class="codepen">See the Pen <a href="https://codepen.io/skdream/pen/RgNOdz/">RgNOdz</a> by jiyongjia (<a href="https://codepen.io/skdream">@skdream</a>) on <a href="https://codepen.io">CodePen</a>.</p>
+<script async src="https://production-assets.codepen.io/assets/embed/ei.js"></script>
 				</div>
 			</section>
 
 			<section>
 				<h2>解决这个问题的一种方案</h2>
 				<div>
-					<script async src="http://jsfiddle.net/v7gjv/1/embed/"></script>
+					<!-- <script async src="http://jsfiddle.net/v7gjv/1/embed/"></script> -->
+
+					<p data-height="265" data-theme-id="0" data-slug-hash="eRmowy" data-default-tab="result" data-user="skdream" data-embed-version="2" data-pen-title="eRmowy" class="codepen">See the Pen <a href="https://codepen.io/skdream/pen/eRmowy/">eRmowy</a> by jiyongjia (<a href="https://codepen.io/skdream">@skdream</a>) on <a href="https://codepen.io">CodePen</a>.</p>
+<script async src="https://production-assets.codepen.io/assets/embed/ei.js"></script>
 				</div>
 			</section>
 			
 			<section>
-				<h2>性能问题</h2>
+				<h3>性能问题</h3>
 				<p>
 					如果不是因为某些特殊任务而需要闭包，在没有必要的情况下，在其它函数中创建函数是不明智的，因为闭包对脚本性能具有负面影响，包括处理速度和内存消耗。
 				</p>
 			</section>
 			
 			<section>
-			<h2>使用闭包不当的例子</h2>
+			<h3>使用闭包不当的例子</h3>
 			
 			<div>
 			<pre><code>
@@ -889,7 +837,6 @@ function MyObject(name, message) {
 			</div>
 			
 			<div>
-			<p>可以改写为</p>
 			<pre><code>
 function MyObject(name, message) {
   this.name = name.toString();
@@ -939,7 +886,17 @@ MyObject.prototype = {
 				<p><img src="./images/javascript.png"></p>
 			</section>
 		</section>
-
+		<section>
+			<section>
+				<h2>参考：</h2>
+				<div style="text-align: left;">
+				<li>《javascript高级程序设计》</li>
+				<li>《你所不知道的JavaScript》</li>
+				<li>《MDN》</li>
+				</div>
+			
+			</section>
+		</section>
 	</div>
 </div>
 

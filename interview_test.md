@@ -1,4 +1,6 @@
+http://thatjsdude.com/interview/index.html
 
+http://thatjsdude.com/interview/js2.html
 
 
 ## Scope and hoisting

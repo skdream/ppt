@@ -30,6 +30,8 @@
 					<ul>
 						<li class="fragment fade-up">javascript内存管理</li>
 						<li class="fragment fade-up">变量、函数声明提升</li>
+						<li class="fragment fade-up">函数参数传递</li>
+
 						<li class="fragment fade-up">this对象、作用域和闭包</li>
 						<!-- <li class="fragment fade-up">JavaScript参数传递</li>
 						<li class="fragment fade-up">类数组对象与arguments</li> -->
@@ -424,6 +426,36 @@ else {
 </script>
 </section>
 
+<section>
+    <section>
+<h2>函数参数按值传递</h2>
+ECMAScript中所有函数的参数都是按值传递的。
+
+<ul>
+	<li  class="fragment fade-up">参数如果是基本类型，传递的是值的副本 </li>
+	<li class="fragment fade-up">参数是引用类型，传递的是引用类型的指针，也就是存储在栈中的地址。</li>
+</ul>
+	</section>
+
+	<section>
+
+	<pre><code class="javascript" data-trim contenteditable style="font-size: 18px;">
+
+function setName(obj) { //obj是个局部变量  
+	//obj和person所存的内存地址一样，通过obj修改和通过perosn修改内存中的值将会是一样的效果  
+	obj.name = "Nicholas";    
+	//此时将一个新的内存地址赋给了obj，那么它就失去了原来person中的地址  
+	//那么它也只能修改新内存地址里面的东西，而无法修改原来内存中的东西  
+	obj = new Object();   
+	obj.name = "Grey";   
+}  
+          
+var person = new Object();  
+setName(person); //obj = person  
+alert(person.name);    //"Nicholas"  
+</code></pre>
+	</section>
+</section>
                 
 <section>
     <section>

@@ -13,11 +13,11 @@ D:undefined
 
 
 var a = 1; 
-function b() { 
+function b() {
     a = 10; 
     return; 
     function a() {} 
-} 
+}
 b(); 
 console.log(a);          
         
@@ -54,3 +54,6 @@ console.log(name);// "Addy Osmani"
 console.log(obj1.value);//"first value"
 console.log(obj2.valuee);//"new value"
 console.log(obj3.valuee);//"new value" 
+
+
+

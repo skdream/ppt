@@ -557,7 +557,31 @@ console.log( b ); // 5
 
 --
 
-4.new 绑定
+4.setTimeout,this指向window
+
+
+```
+function obj() {
+	this.fn = function() {
+	
+		/**
+		 * do something...
+		 **/
+		alert("ok"); 
+		console.log(this); 
+		setTimeout(this.fn, 1000);//直接使用this引用当前对象 
+	} 
+} 
+var o = new obj(); 
+o.fn(); 
+
+```
+
+
+
+--
+
+5.new 绑定
 
 <!-- JavaScript中的new的机制实际上和面向对象类的语言完全不同。
 
@@ -782,7 +806,8 @@ for (let i=1; i<=5; i++) {
 				<h2>实用的闭包</h2>
 				
 				<div>
-				<script async src="http://jsfiddle.net/vnkuZ/embed/"></script>
+				<p data-height="265" data-theme-id="0" data-slug-hash="rwOYGb" data-default-tab="js,result" data-user="skdream" data-embed-version="2" data-pen-title="rwOYGb" class="codepen">See the Pen <a href="https://codepen.io/skdream/pen/rwOYGb/">rwOYGb</a> by jiyongjia (<a href="https://codepen.io/skdream">@skdream</a>) on <a href="https://codepen.io">CodePen</a>.</p>
+<script async src="https://production-assets.codepen.io/assets/embed/ei.js"></script>
 				</div>
 				
 			</section>
@@ -951,6 +976,23 @@ MyObject.prototype = {
 					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
 				]
 			});
+		</script>
+
+		<script type="text/javascript">
+			
+			// function obj() {
+			// 	this.fn = function() {
+				
+			// 		/**
+			// 		 * do something...
+			// 		**/
+			// 		alert("ok"); 
+			// 		console.log(this); 
+			// 		setTimeout(this.fn, 2000);//直接使用this引用当前对象 
+			// 	} 
+			// } 
+			// var o = new obj(); 
+			// o.fn();
 		</script>
 	</body>
 </html>

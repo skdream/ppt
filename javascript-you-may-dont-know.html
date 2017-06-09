@@ -559,6 +559,7 @@ console.log( b ); // 5
 
 4.setTimeout,this指向window
 
+由setTimeout()调用的代码运行在与所在函数完全分离的执行环境上. 这会导致,这些代码中包含的 this 关键字会指向 window (或全局)对象
 
 ```
 function obj() {

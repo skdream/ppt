@@ -648,14 +648,14 @@ js 中采用词法作用域,变量的作用域是由它在源代码中所处位�
 
 ```
 function init() {
-  let name = "Mozilla"; 
-  // name 是一个被init创建的局部变量
-  function displayName() { 
-  // displayName() 是一个内部函数,
-      alert(name); 
-      //  一个闭包使用在父函数中声明的变量
-  } 
-  displayName();
+	let name = "Mozilla"; 
+	// name 是一个被init创建的局部变量
+	function displayName() { 
+		// displayName() 是一个内部函数,
+		alert(name); 
+		// 一个闭包使用在父函数中声明的变量
+	} 
+	displayName();
 }
 init();
 
@@ -672,11 +672,11 @@ init();
 
 var scope = "global scope";
 function checkscope(){
-    var scope = "local scope";
-    function f(){
-        return scope;
-    }
-    return f();
+	var scope = "local scope";
+	function f(){
+		return scope;
+	}
+	return f();
 }
 checkscope();
 
@@ -687,11 +687,11 @@ checkscope();
 ```
 var scope = "global scope";
 function checkscope(){
-    var scope = "local scope";
-    function f(){
-        return scope;
-    }
-    return f;
+	var scope = "local scope";
+	function f(){
+		return scope;
+	}
+	return f;
 }
 checkscope()();
 
@@ -701,12 +701,7 @@ JavaScript 函数的执行用到了作用域链，这个作用域链是在函数
 
 --
 
-## 定义
-
-
-闭包：闭包就是函数能够记住并访问它的词法作用域，即使当这个函数在它的词法作用域之外执行时。
-
---
+## 闭包
 
 
 MDN 对闭包的定义为：

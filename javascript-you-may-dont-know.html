@@ -37,6 +37,36 @@
 						<li class="fragment fade-up">类数组对象与arguments</li> -->
 					</ul>
 				</section>
+
+
+						<section>
+			<section>
+				<h2>最佳实践</h2>
+				<p><img src="./images/zuijiashijian.png"></p>
+			</section>
+		</section>
+
+		<section>
+			<section>
+				<h2>html文件</h2>
+				<p><img src="./images/html.png"></p>
+			</section>
+		</section>
+
+		<section>
+			<section>
+				<h2>css文件</h2>
+				<p><img src="./images/css.png"></p>
+			</section>
+		</section>
+
+
+		<section>
+			<section>
+				<h2>javascript编程方式</h2>
+				<p><img src="./images/javascript.png"></p>
+			</section>
+		</section>
 			
 
 				<section>
@@ -508,17 +538,18 @@ foo(); // TypeError: `this` is `undefined`
 
 ```
 function foo() {
-	console.log( this.a );
+ console.log( this.a);
 }
+var obj = {
+ a: 2,
+ foo: foo
+};
+obj.foo(); // 2
 
-var a = 2;
-
-(function(){
-	"use strict";
-
-	foo(); // 2
-})();
 ```
+
+当函数引用有上下文对象时（即函数作为引用属性被添加到对象中），隐式绑定规则会把函数调用中的 this 绑定到这个上下文对象。
+
 
 --
 
@@ -662,25 +693,6 @@ init();
 ```
 
 函数 init() 创建了一个局部变量 name和一个名为 displayName() 的函数。 displayName() 是一个内部函数——定义于 init() 之内且仅在该函数体内可用。displayName() 没有任何自己的局部变量，然而它可以访问到外部函数的变量，即可以使用父函数 init() 中声明的 name 变量。
-
-
---
-
-
-
-```
-
-var scope = "global scope";
-function checkscope(){
-	var scope = "local scope";
-	function f(){
-		return scope;
-	}
-	return f();
-}
-checkscope();
-
-```
 
 --
 
@@ -861,6 +873,8 @@ for (let i=1; i<=5; i++) {
 					<p data-height="265" data-theme-id="0" data-slug-hash="eRmowy" data-default-tab="result" data-user="skdream" data-embed-version="2" data-pen-title="eRmowy" class="codepen">See the Pen <a href="https://codepen.io/skdream/pen/eRmowy/">eRmowy</a> by jiyongjia (<a href="https://codepen.io/skdream">@skdream</a>) on <a href="https://codepen.io">CodePen</a>.</p>
 <script async src="https://production-assets.codepen.io/assets/embed/ei.js"></script>
 				</div>
+				<p>
+				所有的回调不再共享同一个环境， makeHelpCallback 函数为每一个回调创建一个新的环境。在这些环境中，help 指向 helpText 数组中对应的字符串。</p>
 			</section>
 			
 			<section>
@@ -911,34 +925,7 @@ MyObject.prototype = {
 		</section>
 
 
-		<section>
-			<section>
-				<h2>最佳实践</h2>
-				<p><img src="./images/zuijiashijian.png"></p>
-			</section>
-		</section>
 
-		<section>
-			<section>
-				<h2>html文件</h2>
-				<p><img src="./images/html.png"></p>
-			</section>
-		</section>
-
-		<section>
-			<section>
-				<h2>css文件</h2>
-				<p><img src="./images/css.png"></p>
-			</section>
-		</section>
-
-
-		<section>
-			<section>
-				<h2>javascript编程方式</h2>
-				<p><img src="./images/javascript.png"></p>
-			</section>
-		</section>
 		<section>
 			<section>
 				<h2>参考：</h2>
